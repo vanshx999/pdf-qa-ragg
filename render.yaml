@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: pdf-qa-rag
+    runtime: docker
+    repo: https://github.com/vanshx999/pdf-qa-rag
+    branch: main
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: GROQ_API_KEY
+        sync: false  # You'll set this in Render dashboard
+        

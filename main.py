@@ -2,6 +2,7 @@ import os
 import shutil
 import numpy as np
 import tempfile
+from groq import Groq
 from fastapi import FastAPI, UploadFile, File
 from pydantic import BaseModel
 from langchain_groq import ChatGroq
@@ -16,6 +17,7 @@ from rank_bm25 import BM25Okapi
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 
+client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
 app = FastAPI(title='RAG API - Any PDF')
 
