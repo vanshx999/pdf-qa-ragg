@@ -194,6 +194,21 @@ def health():
         'pdf_loaded': vectorstore is not None,
         'chunks_loaded': len(chunks)
     }
-@app.get("/upload")
-def upload_form():
-    return {"message": "Use POST with multipart/form-data to upload a PDF file"}
+@app.post("/upload")
+async def upload(file: UploadFile):
+    os.makedirs("uploads", exist_ok=True)
+    path = f"uploads/{file.filename}"
+    with open(path, "wb") as f:
+        f.write(await file.read())
+    # THEN embed it into ChromaDB here
+    return {"status": "uploaded", "file": file.filename}
+
+@app.get("/debug")
+def debug():
+    import os
+    return {
+        "cwd": os.getcwd(),
+        "files_in_root": os.listdir(".")[:20],
+        "uploads_exists": os.path.exists("uploads"),
+        "files_in_uploads": os.listdir("uploads") if os.path.exists("uploads") else []
+    }
