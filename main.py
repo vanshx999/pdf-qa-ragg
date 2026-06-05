@@ -198,11 +198,39 @@ def health():
 async def upload(file: UploadFile):
     os.makedirs("uploads", exist_ok=True)
     path = f"uploads/{file.filename}"
+    
     with open(path, "wb") as f:
         f.write(await file.read())
-    # THEN embed it into ChromaDB here
-    return {"status": "uploaded", "file": file.filename}
-
+    
+    # === EMBED INTO CHROMADB ===
+    from pypdf import PdfReader
+    from langchain_text_splitters import RecursiveCharacterTextSplitter
+    import chromadb
+    from sentence_transformers import SentenceTransformer
+    
+    # 1. Read PDF
+    reader = PdfReader(path)
+    text = "\n".join([page.extract_text() or "" for page in reader.pages])
+    
+    # 2. Chunk it
+    splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+    chunks = splitter.split_text(text)
+    
+    # 3. Embed and store
+    client = chromadb.PersistentClient(path="./chroma_db")
+    collection = client.get_or_create_collection("pdf_docs")
+    embedder = SentenceTransformer("all-MiniLM-L6-v2")
+    
+    for i, chunk in enumerate(chunks):
+        embedding = embedder.encode(chunk).tolist()
+        collection.add(
+            ids=[f"{file.filename}_{i}"],
+            documents=[chunk],
+            embeddings=[embedding],
+            metadatas=[{"source": file.filename, "chunk": i}]
+        )
+    
+    return {"status": "uploaded", "file": file.filename, "chunks": len(chunks)}
 @app.get("/debug")
 def debug():
     import os
