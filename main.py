@@ -117,7 +117,8 @@ def hybrid_retriever(query, k=3):
     return [chunks[idx] for idx, _ in sorted_results]
  
 def format_docs(docs):
-    return "\n\n".join(f'[Page {doc.metadata.get('page', '?')}]: {doc.page_content[:400]}' for doc in docs)
+    return "\n\n".join(f'[Page {doc.metadata.get("page", "?")}]: {doc.page_content[:400]}' for doc in docs)
+    
 
 class Question(BaseModel):
     question: str
